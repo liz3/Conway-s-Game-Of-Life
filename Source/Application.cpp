@@ -64,7 +64,7 @@ void Application::run()
     while (m_window.isOpen())
     {
         m_window.clear();
-
+        updateWorld();
         m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
         m_window.display();
         handleEvents();
@@ -94,23 +94,27 @@ void Application::updateWorld()
                 count++;
         }
 
-        auto& cell = m_cells[getCellIndex(x, y)];
+        auto cell           = m_cells[getCellIndex(x, y)];
+        auto& updateCell    = newCells[getCellIndex(x, y)];
         switch (cell)
         {
             case Cell::Alive:
                 if (count < 2 || count > 3)
                 {
-                    cell = Cell::Dead;
+                    updateCell = Cell::Dead;
                 }
                 break;
 
             case Cell::Dead:
                 if (count == 3)
                 {
-                    cell = Cell::Alive;
+                    updateCell = Cell::Alive;
                 }
         }
+
+        setQuadColour(x, y, updateCell);
     });
+    m_cells = std::move(newCells);
 }
 
 
@@ -132,31 +136,18 @@ unsigned Application::getCellIndex(unsigned x, unsigned y)
     return y * WIDTH + x;
 }
 
+void Application::setQuadColour(unsigned x, unsigned y, Cell cell)
+{
+    auto index =  getCellIndex(x, y) * 4;
+    auto colour = cell == Cell::Alive ?
+                    sf::Color::Black :
+                    sf::Color::White;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    m_pixels[index    ].color = colour;
+    m_pixels[index + 1].color = colour;
+    m_pixels[index + 2].color = colour;
+    m_pixels[index + 3].color = colour;
+}
 
 
 
