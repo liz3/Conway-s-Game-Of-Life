@@ -181,30 +181,45 @@ void Application::setQuadColour(unsigned x, unsigned y, Cell cell)
     m_pixels[index + 3].color = colour;
 }
 
+void pv2(int x, int y)
+{
+    std::cout << "X: " << x << " Y: " << y << "\n";
+}
+
 void Application::handleCreateInput()
 {
     static sf::Clock delay;
-    if (delay.getElapsedTime().asSeconds() > 0.1)
+    if (delay.getElapsedTime().asSeconds() > 0.2)
     {
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
+
             delay.restart();
             auto mousePosition = sf::Mouse::getPosition(m_window);
+            auto x = mousePosition.x;
+            auto y = mousePosition.y;
 
-            auto newX = mousePosition.x / QUAD_SIZE;
-            auto newY = mousePosition.y / QUAD_SIZE;
+            if (x < 0 || y < 0 ||
+                x > m_window.getSize().x || y > m_window.getSize().y)
+            {
+                return;
+            }
+
+            int newX = x / QUAD_SIZE;
+            int newY = y / QUAD_SIZE;
 
             auto& cell = m_cells[getCellIndex(newX, newY)];
 
+            //Switch cell type
             cell =  cell == Cell::Alive ?
                         Cell::Dead :
                         Cell::Alive;
 
             setQuadColour(newX, newY, cell);
+
+            pv2(mousePosition.x, mousePosition.y);
+            pv2(newX, newY);
+            std::cout << "\n";
         }
     }
 }
-
-
-
-
