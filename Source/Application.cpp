@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+
+
 Application::Application()
 :   m_window    ({1280, 720}, "Conway's Game of Life")
 ,   QUAD_SIZE   (8)
@@ -13,7 +15,7 @@ Application::Application()
     m_pixels.reserve(WIDTH *
                      HEIGHT * 4);
 
-    m_window.setFramerateLimit(60);
+    m_window.setFramerateLimit(30);
 
 
     auto addQuad = [&](int x, int y)
@@ -50,7 +52,7 @@ Application::Application()
 
     cellForEach([&](int x, int y)
     {
-        m_cells[getCellIndex(x, y)] = (Cell)m_rand.getIntInRange(0, 1);;
+        m_cells[getCellIndex(x, y)] = Cell::Dead;
     });
 
     cellForEach([&](int x, int y)
@@ -64,7 +66,16 @@ void Application::run()
     while (m_window.isOpen())
     {
         m_window.clear();
-        updateWorld();
+
+        switch (m_state)
+        {
+            case State::Creating:
+
+            case State::Simulating:
+                updateWorld();
+                break;
+        }
+
         m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
         m_window.display();
         handleEvents();
@@ -110,6 +121,7 @@ void Application::updateWorld()
                 {
                     updateCell = Cell::Alive;
                 }
+                break;
         }
 
         setQuadColour(x, y, updateCell);

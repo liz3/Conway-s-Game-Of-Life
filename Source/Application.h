@@ -13,6 +13,12 @@ enum class Cell : uint8_t
     Alive
 };
 
+enum class State  : uint8_t
+{
+    Simulating,
+    Creating
+};
+
 class Application
 {
     public:
@@ -40,6 +46,8 @@ class Application
         std::vector<Cell>           m_cells;
 
         Random m_rand;
+
+        State m_state = State::Creating;
 };
 
 template<typename F>
