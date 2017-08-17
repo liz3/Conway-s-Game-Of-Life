@@ -1,11 +1,6 @@
 #include "Application.h"
 
-#include <ctime>    //time(int)
-#include <cstdlib>  //rand, srand (TEMP)
-#include <cstdint>  //uint8_t
 #include <iostream>
-
-
 
 Application::Application()
 :   m_window    ({1280, 720}, "Conway's Game of Life")
@@ -19,7 +14,7 @@ Application::Application()
                      HEIGHT * 4);
 
     m_window.setFramerateLimit(60);
-    std::srand(std::time(nullptr)); //temp for testing purposes
+
 
     auto addQuad = [&](int x, int y)
     {
@@ -36,12 +31,16 @@ Application::Application()
         bottomLeft  .position = {pixelX,            pixelY + WIDTH};
         bottomRight .position = {pixelX + WIDTH,    pixelY + WIDTH};
 
-        //temp for testing
-        uint8_t c = std::rand() % 255;
-        topLeft     .color = {c, c, c};
-        topRight    .color = {c, c, c};
-        bottomLeft  .color = {c, c, c};
-        bottomRight .color = {c, c, c};
+        auto cell = m_cells[getCellIndex(x, y)];
+        auto colour = cell == Cell::Alive ?
+                        sf::Color::Black :
+                        sf::Color::White;
+
+
+        topLeft     .color = colour;
+        topRight    .color = colour;
+        bottomLeft  .color = colour;
+        bottomRight .color = colour;
 
         m_pixels.push_back(topLeft);
         m_pixels.push_back(bottomLeft);
@@ -49,17 +48,15 @@ Application::Application()
         m_pixels.push_back(topRight);
     };
 
-    for (unsigned x = 0; x < m_window.getSize().x / QUAD_SIZE; ++x)
-    for (unsigned y = 0; y < m_window.getSize().y / QUAD_SIZE; ++y)
+    cellForEach([&](int x, int y)
     {
-        addQuad(x, y);
-    }
+        m_cells[getCellIndex(x, y)] = (Cell)m_rand.getIntInRange(0, 1);;
+    });
 
     cellForEach([&](int x, int y)
     {
-        auto& cell = m_cells[getCellIndex(x, y)];
+        addQuad(x, y);
     });
-
 }
 
 void Application::run()
@@ -78,7 +75,42 @@ void Application::updateWorld()
 {
     std::vector<Cell> newCells(WIDTH * HEIGHT);
 
+    cellForEach([&](int x, int y)
+    {
+        unsigned count = 0;
+        for (int nX = -1; nX <= 1; nX++)    //check neighbours
+        for (int nY = -1; nY <= 1; nY++)
+        {
+            int newX = nX + x;
+            int newY = nY + y;
 
+            if (newX == -1 || newX == (int)WIDTH ||
+                newY == -1 || newY == (int)WIDTH)
+            {
+                continue;   //out of bounds
+            }
+            auto cell = m_cells[getCellIndex(newX, newY)];
+            if (cell == Cell::Alive)
+                count++;
+        }
+
+        auto& cell = m_cells[getCellIndex(x, y)];
+        switch (cell)
+        {
+            case Cell::Alive:
+                if (count < 2 || count > 3)
+                {
+                    cell = Cell::Dead;
+                }
+                break;
+
+            case Cell::Dead:
+                if (count == 3)
+                {
+                    cell = Cell::Alive;
+                }
+        }
+    });
 }
 
 

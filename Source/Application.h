@@ -3,8 +3,11 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <cstdint>  //uint8_t
 
-enum class Cell
+#include "Random.h"
+
+enum class Cell : uint8_t
 {
     Dead,
     Alive
@@ -21,7 +24,8 @@ class Application
         void handleEvents();
         void updateWorld();
 
-        unsigned getCellIndex(unsigned x, unsigned y);
+        unsigned getCellIndex   (unsigned x, unsigned y);
+        void setQuadColour      (unsigned x, unsigned y, Cell cell);
 
         template<typename F>
         void cellForEach(F f);
@@ -34,6 +38,8 @@ class Application
 
         std::vector<sf::Vertex>     m_pixels;
         std::vector<Cell>           m_cells;
+
+        Random m_rand;
 };
 
 template<typename F>
@@ -41,7 +47,7 @@ void Application::cellForEach(F f)
 {
     for (unsigned x = 0; x < WIDTH; x++)
     {
-        for (unsigned y = 0; y < WIDTH; y++)
+        for (unsigned y = 0; y < HEIGHT; y++)
         {
             f(x, y);
         }
