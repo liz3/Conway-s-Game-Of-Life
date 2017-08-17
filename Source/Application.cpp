@@ -17,7 +17,7 @@ sf::Color getCellColour(Cell cell)
 
 Application::Application()
 :   m_window    ({1280, 720}, "Conway's Game of Life")
-,   QUAD_SIZE   (8)
+,   QUAD_SIZE   (32)
 ,   WIDTH       (m_window.getSize().x / QUAD_SIZE)
 ,   HEIGHT      (m_window.getSize().y / QUAD_SIZE)
 ,   m_cells     (WIDTH * HEIGHT)
@@ -29,8 +29,7 @@ Application::Application()
     m_text.setOutlineThickness  (3);
     m_text.setCharacterSize     (15);
     m_text.setPosition          (5, 5);
-    m_text.setString            ("Click cell to change it to alive/ dead. \n\
-                                Press \"Space\" when you are ready.");
+    m_text.setString            ("Click cell to change it to alive/ dead. \nPress \"Space\" when you are ready.");
 
 
     m_pixels.reserve(WIDTH *
@@ -49,10 +48,10 @@ Application::Application()
         float pixelX = x * QUAD_SIZE;
         float pixelY = y * QUAD_SIZE;
 
-        topLeft     .position = {pixelX,            pixelY};
-        topRight    .position = {pixelX + WIDTH,    pixelY};
-        bottomLeft  .position = {pixelX,            pixelY + WIDTH};
-        bottomRight .position = {pixelX + WIDTH,    pixelY + WIDTH};
+        topLeft     .position = {pixelX,                pixelY};
+        topRight    .position = {pixelX + QUAD_SIZE,    pixelY};
+        bottomLeft  .position = {pixelX,                pixelY + QUAD_SIZE};
+        bottomRight .position = {pixelX + QUAD_SIZE,    pixelY + QUAD_SIZE};
 
         auto cell = m_cells[getCellIndex(x, y)];
         auto colour = getCellColour(cell);
@@ -78,6 +77,8 @@ Application::Application()
     {
         addQuad(x, y);
     });
+
+    makeGrid();
 }
 
 void Application::run()
@@ -86,19 +87,32 @@ void Application::run()
     {
         m_window.clear();
 
+        //update
         switch (m_state)
         {
             case State::Creating:
                 handleCreateInput();
                 break;
 
-            case State::Simulating:
+            case State::Sim:
                 updateWorld();
                 break;
         }
 
-        m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
-        m_window.draw(m_text);
+        //draw
+        switch (m_state)
+        {
+            case State::Creating:
+                m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
+                m_window.draw(m_grid.data(), m_grid.size(), sf::Lines);
+                m_window.draw(m_text);
+                break;
+
+            case State::Sim:
+                m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
+                m_window.draw(m_grid.data(), m_grid.size(), sf::Lines);
+                break;
+        }
         m_window.display();
         handleEvents();
     }
@@ -193,33 +207,64 @@ void Application::handleCreateInput()
     {
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
-
             delay.restart();
             auto mousePosition = sf::Mouse::getPosition(m_window);
             auto x = mousePosition.x;
             auto y = mousePosition.y;
 
-            if (x < 0 || y < 0 ||
-                x > m_window.getSize().x || y > m_window.getSize().y)
+            if (x < 0 || x > (int)m_window.getSize().x ||
+                y < 0 || y > (int)m_window.getSize().y)
             {
                 return;
             }
 
+            //Convert mouse/ screen coordinates to cell coordinates
             int newX = x / QUAD_SIZE;
             int newY = y / QUAD_SIZE;
 
-            auto& cell = m_cells[getCellIndex(newX, newY)];
-
             //Switch cell type
+            auto& cell = m_cells[getCellIndex(newX, newY)];
             cell =  cell == Cell::Alive ?
                         Cell::Dead :
                         Cell::Alive;
 
+            //Set new colour
             setQuadColour(newX, newY, cell);
 
             pv2(mousePosition.x, mousePosition.y);
             pv2(newX, newY);
             std::cout << "\n";
         }
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+    {
+        m_state = State::Sim;
+    }
+}
+
+void Application::makeGrid()
+{
+    for (unsigned x = 0; x < WIDTH; x++)
+    {
+        sf::Vertex top;
+        sf::Vertex bottom;
+
+        top     .position = {float(x * QUAD_SIZE), 0};
+        bottom  .position = {float(x * QUAD_SIZE), float(HEIGHT * QUAD_SIZE)};
+
+        m_grid.push_back(top);
+        m_grid.push_back(bottom);
+    }
+
+    for (unsigned y = 0; y < WIDTH; y++)
+    {
+        sf::Vertex left;
+        sf::Vertex right;
+
+        left    .position = {0,                         float(y * QUAD_SIZE)};
+        right   .position = {float(WIDTH * QUAD_SIZE),  float(y * QUAD_SIZE)};
+
+        m_grid.push_back(left);
+        m_grid.push_back(right);
     }
 }

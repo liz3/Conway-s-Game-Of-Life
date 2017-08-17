@@ -15,7 +15,7 @@ enum class Cell : uint8_t
 
 enum class State  : uint8_t
 {
-    Simulating,
+    Sim,
     Creating
 };
 
@@ -31,6 +31,8 @@ class Application
         void updateWorld();
         void handleCreateInput();
 
+        void makeGrid();
+
         unsigned getCellIndex   (unsigned x, unsigned y);
         void setQuadColour      (unsigned x, unsigned y, Cell cell);
 
@@ -43,6 +45,7 @@ class Application
         const unsigned WIDTH;
         const unsigned HEIGHT;
 
+        std::vector<sf::Vertex>     m_grid;
         std::vector<sf::Vertex>     m_pixels;
         std::vector<Cell>           m_cells;
 
