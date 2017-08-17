@@ -29,6 +29,7 @@ class Application
     private:
         void handleEvents();
         void updateWorld();
+        void handleCreateInput();
 
         unsigned getCellIndex   (unsigned x, unsigned y);
         void setQuadColour      (unsigned x, unsigned y, Cell cell);
@@ -48,6 +49,9 @@ class Application
         Random m_rand;
 
         State m_state = State::Creating;
+
+        sf::Font m_font;
+        sf::Text m_text;
 };
 
 template<typename F>

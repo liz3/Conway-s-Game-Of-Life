@@ -2,7 +2,18 @@
 
 #include <iostream>
 
+namespace
+{
+    sf::Color deadColour   = {100, 100, 100};
+    sf::Color aliveColour  = sf::Color::Black;
+}
 
+sf::Color getCellColour(Cell cell)
+{
+    return cell == Cell::Alive ?
+                    aliveColour :
+                    deadColour;
+}
 
 Application::Application()
 :   m_window    ({1280, 720}, "Conway's Game of Life")
@@ -11,6 +22,16 @@ Application::Application()
 ,   HEIGHT      (m_window.getSize().y / QUAD_SIZE)
 ,   m_cells     (WIDTH * HEIGHT)
 {
+    m_font.loadFromFile         ("font/arial.ttf");
+    m_text.setFont              (m_font);
+    m_text.setFillColor         (sf::Color::White);
+    m_text.setOutlineColor      (sf::Color::Black);
+    m_text.setOutlineThickness  (3);
+    m_text.setCharacterSize     (15);
+    m_text.setPosition          (5, 5);
+    m_text.setString            ("Click cell to change it to alive/ dead. \n\
+                                Press \"Space\" when you are ready.");
+
 
     m_pixels.reserve(WIDTH *
                      HEIGHT * 4);
@@ -34,9 +55,7 @@ Application::Application()
         bottomRight .position = {pixelX + WIDTH,    pixelY + WIDTH};
 
         auto cell = m_cells[getCellIndex(x, y)];
-        auto colour = cell == Cell::Alive ?
-                        sf::Color::Black :
-                        sf::Color::White;
+        auto colour = getCellColour(cell);
 
 
         topLeft     .color = colour;
@@ -70,6 +89,8 @@ void Application::run()
         switch (m_state)
         {
             case State::Creating:
+                handleCreateInput();
+                break;
 
             case State::Simulating:
                 updateWorld();
@@ -77,6 +98,7 @@ void Application::run()
         }
 
         m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
+        m_window.draw(m_text);
         m_window.display();
         handleEvents();
     }
@@ -151,14 +173,36 @@ unsigned Application::getCellIndex(unsigned x, unsigned y)
 void Application::setQuadColour(unsigned x, unsigned y, Cell cell)
 {
     auto index =  getCellIndex(x, y) * 4;
-    auto colour = cell == Cell::Alive ?
-                    sf::Color::Black :
-                    sf::Color::White;
+    auto colour = getCellColour(cell);
 
     m_pixels[index    ].color = colour;
     m_pixels[index + 1].color = colour;
     m_pixels[index + 2].color = colour;
     m_pixels[index + 3].color = colour;
+}
+
+void Application::handleCreateInput()
+{
+    static sf::Clock delay;
+    if (delay.getElapsedTime().asSeconds() > 0.1)
+    {
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            delay.restart();
+            auto mousePosition = sf::Mouse::getPosition(m_window);
+
+            auto newX = mousePosition.x / QUAD_SIZE;
+            auto newY = mousePosition.y / QUAD_SIZE;
+
+            auto& cell = m_cells[getCellIndex(newX, newY)];
+
+            cell =  cell == Cell::Alive ?
+                        Cell::Dead :
+                        Cell::Alive;
+
+            setQuadColour(newX, newY, cell);
+        }
+    }
 }
 
 
