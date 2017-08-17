@@ -1,0 +1,11 @@
+*.cbp
+*.dll
+*.depend 
+*.layout
+
+bin/
+obj/
+
+*.7z
+
+PredatorAndPreyCellularAutomaton/
