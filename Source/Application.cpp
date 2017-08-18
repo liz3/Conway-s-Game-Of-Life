@@ -1,6 +1,8 @@
 #include "Application.h"
 
 #include <iostream>
+#include <random>
+#include <ctime>
 
 namespace
 {
@@ -15,11 +17,11 @@ sf::Color& getCellColour(Cell cell)
                     deadColour;
 }
 
-Application::Application(Config config)
+Application::Application(const Config& config)
 :   CONFIG      (config)
 ,   m_drawBoard (config)
 ,   m_window    ({config.windowWidth, config.windowHeight}, "Conway's Game of Life")
-,   m_view      ({0, 0}, {(float)m_window.getSize().x, (float)m_window.getSize().y})
+,   m_view      ({0, 0}, {(float)config.windowWidth, (float)config.windowHeight})
 ,   m_cells     (config.simWidth * config.simHeight)
 {
     m_font.loadFromFile         ("font/arial.ttf");
@@ -27,16 +29,21 @@ Application::Application(Config config)
     m_text.setFillColor         (sf::Color::White);
     m_text.setOutlineColor      (sf::Color::Black);
     m_text.setOutlineThickness  (3);
-    m_text.setCharacterSize     (15);
+    m_text.setCharacterSize     (20);
     m_text.setPosition          (5, 5);
-    m_text.setString            ("Click cell to change it to alive/ dead. \nPress \"Space\" when you are ready.");
+    m_text.setString            (std::string("Click cell to change it to alive/ dead.\n") +
+                                 std::string("Press \"C\" to clear the cells\n") +
+                                 std::string("Press \"T\" to toggle the grid\n") +
+                                 std::string("Press \"Space\" when you are ready."));
 
     m_window.setFramerateLimit(30);
 
+    std::mt19937 rng (std::time(nullptr));
     cellForEach([&](unsigned x, unsigned y)
     {
+        std::uniform_int_distribution<int> dist(0, 1);
         auto& cell = m_cells[getCellIndex(x, y)];
-        cell = ((Cell)m_rand.getIntInRange(0, 1));
+        cell = (Cell)dist(rng);
         m_drawBoard.addQuad(x, y, getCellColour(cell));
     });
 
@@ -53,12 +60,22 @@ void Application::run()
         m_window.clear();
         m_window.setView(m_view);
 
-        handleInput(clock.restart().asSeconds());
-        //update
         switch (m_state)
         {
             case State::Creating:
                 mouseInput();
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+                {
+                    m_state = State::Sim;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+                {
+                    cellForEach([&](unsigned x, unsigned y)
+                    {
+                        m_cells[getCellIndex(x, y)] = Cell::Dead;
+                        m_drawBoard.setQuadColour(x, y, deadColour);
+                    });
+                }
                 break;
 
             case State::Sim:
@@ -67,7 +84,7 @@ void Application::run()
                 break;
         }
 
-        m_drawBoard.draw(m_window, m_state == State::Sim ? false : true);
+        m_drawBoard.draw(m_window);
         m_window.setView(m_window.getDefaultView());
         m_window.draw(m_text);
 
@@ -142,39 +159,6 @@ void Application::handleEvents()
 unsigned Application::getCellIndex(unsigned x, unsigned y)
 {
     return y * CONFIG.simWidth + x;
-}
-
-void Application::handleInput(float dt)
-{
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-    {
-        m_state = State::Sim;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-    {
-        m_view.move(0, -100 * dt);
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-    {
-        m_view.move(0, 100 * dt);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-    {
-        m_view.move(-100 * dt, 0);
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-    {
-        m_view.move(100 * dt, 0);
-    }
-    /*
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-    {
-        m_view.zoom(1.1);
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-    {
-        m_view.zoom(0.9);
-    }*/
 }
 
 void Application::mouseInput()

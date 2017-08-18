@@ -5,7 +5,6 @@
 #include <vector>
 #include <cstdint>  //uint8_t
 
-#include "Random.h"
 #include "DrawBoard.h"
 #include "Config.h"
 
@@ -24,14 +23,13 @@ enum class State  : uint8_t
 class Application
 {
     public:
-        Application(Config config);
+        Application(const Config& config);
 
         void run();
 
     private:
         void handleEvents       ();
         void updateWorld        ();
-        void handleInput        (float dt);
         void mouseInput         ();
         unsigned getCellIndex   (unsigned x, unsigned y);
 
@@ -40,14 +38,15 @@ class Application
 
         const Config CONFIG;
 
-        sf::RenderWindow m_window;
-        std::vector<Cell>           m_cells;
-        Random m_rand;
+        Drawboard m_drawBoard;
         State m_state = State::Creating;
+
+        sf::RenderWindow m_window;
+        sf::View m_view;
         sf::Font m_font;
         sf::Text m_text;
-        sf::View m_view;
-        Drawboard m_drawBoard;
+
+        std::vector<Cell> m_cells;
 };
 
 template<typename F>

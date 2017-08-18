@@ -9,12 +9,12 @@
 class Drawboard
 {
     public:
-        Drawboard(Config config);
+        Drawboard(const Config& config);
 
         void addQuad        (unsigned x, unsigned y, sf::Color& colour);
         void setQuadColour  (unsigned x, unsigned y, sf::Color& colour);
 
-        void draw(sf::RenderWindow& window, bool drawGrid);
+        void draw(sf::RenderWindow& window);
 
     private:
         unsigned getQuadIndex(unsigned x, unsigned y);

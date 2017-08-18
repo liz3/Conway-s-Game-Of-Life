@@ -1,6 +1,6 @@
 #include "DrawBoard.h"
 
-Drawboard::Drawboard(Config config)
+Drawboard::Drawboard(const Config& config)
 :   CONFIG  (config)
 {
     m_pixels.reserve(config.simWidth * config.simHeight * 4);
@@ -43,8 +43,17 @@ void Drawboard::setQuadColour(unsigned x, unsigned y, sf::Color& colour)
     }
 }
 
-void Drawboard::draw(sf::RenderWindow& window, bool drawGrid)
+void Drawboard::draw(sf::RenderWindow& window)
 {
+    static sf::Clock delay;
+    static bool drawGrid = false;
+
+    if (delay.getElapsedTime() > sf::seconds(0.3) && sf::Keyboard::isKeyPressed(sf::Keyboard::T))
+    {
+        delay.restart();
+        drawGrid = !drawGrid;
+    }
+
     window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
     if (drawGrid)
     {
