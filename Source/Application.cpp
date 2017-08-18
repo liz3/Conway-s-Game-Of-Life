@@ -16,11 +16,12 @@ sf::Color getCellColour(Cell cell)
 }
 
 Application::Application()
-:   m_window    ({800, 600}, "Conway's Game of Life")
+:   m_window    ({1024, 768}, "Conway's Game of Life")
 ,   QUAD_SIZE   (8)
 ,   WIDTH       (m_window.getSize().x / QUAD_SIZE)
 ,   HEIGHT      (m_window.getSize().y / QUAD_SIZE)
 ,   m_cells     (WIDTH * HEIGHT)
+,   m_view ({0, 0}, {(float)m_window.getSize().x, (float)m_window.getSize().y})
 {
     m_font.loadFromFile         ("font/arial.ttf");
     m_text.setFont              (m_font);
@@ -35,8 +36,7 @@ Application::Application()
     m_pixels.reserve(WIDTH *
                      HEIGHT * 4);
 
-    m_window.setFramerateLimit(10);
-
+    m_window.setFramerateLimit(30);
 
     auto addQuad = [&](unsigned x, unsigned y)
     {
@@ -70,50 +70,45 @@ Application::Application()
 
     cellForEach([&](unsigned x, unsigned y)
     {
-        m_cells[getCellIndex(x, y)] = Cell::Dead;
+        m_cells[getCellIndex(x, y)] = ((Cell)m_rand.getIntInRange(0, 1));
         addQuad(x, y);
     });
-/*
-    cellForEach([&](unsigned x, unsigned y)
-    {
-        addQuad(x, y);
-    });
-*/
+
     makeGrid();
+
+    m_view.setCenter(m_window.getSize().x / 2,
+                   m_window.getSize().y / 2);
 }
 
 void Application::run()
 {
+    int generations = 0;
+    sf::Clock clock;
     while (m_window.isOpen())
     {
         m_window.clear();
+        m_window.setView(m_view);
 
+        handleInput(clock.restart().asSeconds());
         //update
         switch (m_state)
         {
             case State::Creating:
-                handleInput();
+                mouseInput();
                 break;
 
             case State::Sim:
+                m_text.setString("Generation: " + std::to_string(generations++));
                 updateWorld();
                 break;
         }
 
-        //draw
-        switch (m_state)
-        {
-            case State::Creating:
-                m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
-                m_window.draw(m_grid.data(), m_grid.size(), sf::Lines);
-                m_window.draw(m_text);
-                break;
+        m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
+        if (m_state == State::Creating)
+            m_window.draw(m_grid.data(), m_grid.size(), sf::Lines);
+        m_window.setView(m_window.getDefaultView());
+        m_window.draw(m_text);
 
-            case State::Sim:
-                m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
-                m_window.draw(m_grid.data(), m_grid.size(), sf::Lines);
-                break;
-        }
         m_window.display();
         handleEvents();
     }
@@ -198,46 +193,72 @@ void Application::setQuadColour(unsigned x, unsigned y, Cell cell)
     m_pixels[index + 3].color = colour;
 }
 
-void Application::handleInput()
+void Application::handleInput(float dt)
 {
-    static sf::Clock delay;
-    if (delay.getElapsedTime().asSeconds() > 0.2)
-    {
-        mouseInput();
-    }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
     {
         m_state = State::Sim;
     }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+    {
+        m_view.move(0, -100 * dt);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+    {
+        m_view.move(0, 100 * dt);
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+    {
+        m_view.move(-100 * dt, 0);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+    {
+        m_view.move(100 * dt, 0);
+    }
+    /*
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+    {
+        m_view.zoom(1.1);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+    {
+        m_view.zoom(0.9);
+    }*/
 }
 
 void Application::mouseInput()
 {
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    static sf::Clock delay;
+    if (delay.getElapsedTime().asSeconds() > 0.2)
     {
-        delay.restart();
-        auto mousePosition = sf::Mouse::getPosition(m_window);
-        auto x = mousePosition.x;
-        auto y = mousePosition.y;
-
-        if (x < 0 || x > (int)m_window.getSize().x ||
-            y < 0 || y > (int)m_window.getSize().y)
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
-            return;
+            delay.restart();
+            auto mousePosition = sf::Mouse::getPosition(m_window);
+            auto adjustedMousePosition = m_window.mapCoordsToPixel({(float)mousePosition.x,
+                                                                    (float)mousePosition.y});
+            auto x = adjustedMousePosition.x;
+            auto y = adjustedMousePosition.y;
+
+            if (x < 0 || x > (int)m_window.getSize().x ||
+                y < 0 || y > (int)m_window.getSize().y)
+            {
+                return;
+            }
+
+            //Convert mouse/ screen coordinates to cell coordinates
+            int newX = x / QUAD_SIZE;
+            int newY = y / QUAD_SIZE;
+
+            //Switch cell type
+            auto& cell = m_cells[getCellIndex(newX, newY)];
+            cell =  cell == Cell::Alive ?
+                        Cell::Dead :
+                        Cell::Alive;
+
+            //Set new colour
+            setQuadColour(newX, newY, cell);
         }
-
-        //Convert mouse/ screen coordinates to cell coordinates
-        int newX = x / QUAD_SIZE;
-        int newY = y / QUAD_SIZE;
-
-        //Switch cell type
-        auto& cell = m_cells[getCellIndex(newX, newY)];
-        cell =  cell == Cell::Alive ?
-                    Cell::Dead :
-                    Cell::Alive;
-
-        //Set new colour
-        setQuadColour(newX, newY, cell);
     }
 }
 

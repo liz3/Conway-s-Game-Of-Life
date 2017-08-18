@@ -29,7 +29,7 @@ class Application
     private:
         void handleEvents();
         void updateWorld();
-        void handleInput();
+        void handleInput(float dt);
 
         void mouseInput();
 
@@ -57,6 +57,8 @@ class Application
 
         sf::Font m_font;
         sf::Text m_text;
+
+        sf::View m_view;
 };
 
 template<typename F>
