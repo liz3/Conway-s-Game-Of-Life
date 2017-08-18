@@ -1,15 +1,15 @@
-#ifndef DRAWBOARD_H_INCLUDED
-#define DRAWBOARD_H_INCLUDED
+#ifndef QuadBoard_H_INCLUDED
+#define QuadBoard_H_INCLUDED
 
 #include <SFML/Graphics.hpp>
 #include <vector>
 
 #include "Config.h"
 
-class Drawboard
+class QuadBoard
 {
     public:
-        Drawboard(const Config& config);
+        QuadBoard(const Config& config);
 
         void addQuad        (unsigned x, unsigned y, sf::Color& colour);
         void setQuadColour  (unsigned x, unsigned y, sf::Color& colour);
@@ -26,4 +26,4 @@ class Drawboard
         const Config CONFIG;
 };
 
-#endif // DRAWBOARD_H_INCLUDED
+#endif // QuadBoard_H_INCLUDED

@@ -19,7 +19,7 @@ sf::Color& getCellColour(Cell cell)
 
 Application::Application(const Config& config)
 :   CONFIG      (config)
-,   m_drawBoard (config)
+,   m_quadBoard (config)
 ,   m_window    ({config.windowWidth, config.windowHeight}, "Conway's Game of Life")
 ,   m_view      ({0, 0}, {(float)config.windowWidth, (float)config.windowHeight})
 ,   m_cells     (config.simWidth * config.simHeight)
@@ -44,7 +44,7 @@ Application::Application(const Config& config)
         std::uniform_int_distribution<int> dist(0, 1);
         auto& cell = m_cells[getCellIndex(x, y)];
         cell = (Cell)dist(rng);
-        m_drawBoard.addQuad(x, y, getCellColour(cell));
+        m_quadBoard.addQuad(x, y, getCellColour(cell));
     });
 
     m_view.setCenter(m_window.getSize().x / 2,
@@ -73,7 +73,7 @@ void Application::run()
                     cellForEach([&](unsigned x, unsigned y)
                     {
                         m_cells[getCellIndex(x, y)] = Cell::Dead;
-                        m_drawBoard.setQuadColour(x, y, deadColour);
+                        m_quadBoard.setQuadColour(x, y, deadColour);
                     });
                 }
                 break;
@@ -84,7 +84,7 @@ void Application::run()
                 break;
         }
 
-        m_drawBoard.draw(m_window);
+        m_quadBoard.draw(m_window);
         m_window.setView(m_window.getDefaultView());
         m_window.draw(m_text);
 
@@ -137,7 +137,7 @@ void Application::updateWorld()
                 break;
         }
 
-        m_drawBoard.setQuadColour(x, y, getCellColour(updateCell));
+        m_quadBoard.setQuadColour(x, y, getCellColour(updateCell));
     });
     m_cells = std::move(newCells);
 }
@@ -192,7 +192,7 @@ void Application::mouseInput()
                         Cell::Alive;
 
             //Set new colour
-            m_drawBoard.setQuadColour(newX, newY, getCellColour(cell));
+            m_quadBoard.setQuadColour(newX, newY, getCellColour(cell));
         }
     }
 }

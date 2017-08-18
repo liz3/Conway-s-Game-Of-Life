@@ -38,7 +38,7 @@ class Application
 
         const Config CONFIG;
 
-        Drawboard m_drawBoard;
+        QuadBoard m_quadBoard;
         State m_state = State::Creating;
 
         sf::RenderWindow m_window;

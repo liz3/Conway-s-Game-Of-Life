@@ -1,13 +1,13 @@
-#include "DrawBoard.h"
+#include "QuadBoard.h"
 
-Drawboard::Drawboard(const Config& config)
+QuadBoard::QuadBoard(const Config& config)
 :   CONFIG  (config)
 {
     m_pixels.reserve(config.simWidth * config.simHeight * 4);
     makeGrid();
 }
 
-void Drawboard::addQuad(unsigned x, unsigned y, sf::Color& colour)
+void QuadBoard::addQuad(unsigned x, unsigned y, sf::Color& colour)
 {
     sf::Vertex topLeft;
     sf::Vertex topRight;
@@ -33,7 +33,7 @@ void Drawboard::addQuad(unsigned x, unsigned y, sf::Color& colour)
     m_pixels.push_back(topRight);
 }
 
-void Drawboard::setQuadColour(unsigned x, unsigned y, sf::Color& colour)
+void QuadBoard::setQuadColour(unsigned x, unsigned y, sf::Color& colour)
 {
     auto index = getQuadIndex(x, y);
 
@@ -43,7 +43,7 @@ void Drawboard::setQuadColour(unsigned x, unsigned y, sf::Color& colour)
     }
 }
 
-void Drawboard::draw(sf::RenderWindow& window)
+void QuadBoard::draw(sf::RenderWindow& window)
 {
     static sf::Clock delay;
     static bool drawGrid = false;
@@ -62,7 +62,7 @@ void Drawboard::draw(sf::RenderWindow& window)
 }
 
 
-void Drawboard::makeGrid()
+void QuadBoard::makeGrid()
 {
     for (unsigned x = 0; x < CONFIG.simWidth; x++)
     {
@@ -95,7 +95,7 @@ void Drawboard::makeGrid()
     }
 }
 
-unsigned Drawboard::getQuadIndex(unsigned x, unsigned y) const
+unsigned QuadBoard::getQuadIndex(unsigned x, unsigned y) const
 {
     return (y * CONFIG.simWidth + x) * 4;
 }
