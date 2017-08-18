@@ -7,6 +7,7 @@
 
 #include "Random.h"
 #include "DrawBoard.h"
+#include "Config.h"
 
 enum class Cell : uint8_t
 {
@@ -23,7 +24,7 @@ enum class State  : uint8_t
 class Application
 {
     public:
-        Application();
+        Application(Config config);
 
         void run();
 
@@ -37,32 +38,24 @@ class Application
         template<typename F>
         void cellForEach(F f);
 
+        const Config CONFIG;
+
         sf::RenderWindow m_window;
-
-        const unsigned QUAD_SIZE;
-        const unsigned WIDTH;
-        const unsigned HEIGHT;
-
         std::vector<Cell>           m_cells;
-
         Random m_rand;
-
         State m_state = State::Creating;
-
         sf::Font m_font;
         sf::Text m_text;
-
         sf::View m_view;
-
         Drawboard m_drawBoard;
 };
 
 template<typename F>
 void Application::cellForEach(F f)
 {
-    for (unsigned y = 0; y < HEIGHT; y++)
+    for (unsigned y = 0; y < CONFIG.simHeight; y++)
     {
-        for (unsigned x = 0; x < WIDTH; x++)
+        for (unsigned x = 0; x < CONFIG.simWidth; x++)
         {
             f(x, y);
         }

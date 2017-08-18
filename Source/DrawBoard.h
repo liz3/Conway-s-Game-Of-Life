@@ -4,10 +4,12 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
+#include "Config.h"
+
 class Drawboard
 {
     public:
-        Drawboard(unsigned width, unsigned height, unsigned quadSize);
+        Drawboard(Config config);
 
         void addQuad        (unsigned x, unsigned y, sf::Color& colour);
         void setQuadColour  (unsigned x, unsigned y, sf::Color& colour);
@@ -21,7 +23,7 @@ class Drawboard
         std::vector<sf::Vertex>     m_grid;
         std::vector<sf::Vertex>     m_pixels;
 
-        const unsigned WIDTH, HEIGHT, QUAD_SIZE;
+        const Config CONFIG;
 };
 
 #endif // DRAWBOARD_H_INCLUDED

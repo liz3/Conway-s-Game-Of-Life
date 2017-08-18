@@ -1,11 +1,9 @@
 #include "DrawBoard.h"
 
-Drawboard::Drawboard(unsigned width, unsigned height, unsigned quadSize)
-:   WIDTH       (width)
-,   HEIGHT      (height)
-,   QUAD_SIZE   (quadSize)
+Drawboard::Drawboard(Config config)
+:   CONFIG  (config)
 {
-    m_pixels.reserve(WIDTH * HEIGHT * 4);
+    m_pixels.reserve(config.simWidth * config.simHeight * 4);
     makeGrid();
 }
 
@@ -16,13 +14,13 @@ void Drawboard::addQuad(unsigned x, unsigned y, sf::Color& colour)
     sf::Vertex bottomLeft;
     sf::Vertex bottomRight;
 
-    float pixelX = x * QUAD_SIZE;
-    float pixelY = y * QUAD_SIZE;
+    float pixelX = x * CONFIG.quadSize;
+    float pixelY = y * CONFIG.quadSize;
 
-    topLeft     .position = {pixelX,                pixelY};
-    topRight    .position = {pixelX + QUAD_SIZE,    pixelY};
-    bottomLeft  .position = {pixelX,                pixelY + QUAD_SIZE};
-    bottomRight .position = {pixelX + QUAD_SIZE,    pixelY + QUAD_SIZE};
+    topLeft     .position = {pixelX,                    pixelY};
+    topRight    .position = {pixelX + CONFIG.quadSize,  pixelY};
+    bottomLeft  .position = {pixelX,                    pixelY + CONFIG.quadSize};
+    bottomRight .position = {pixelX + CONFIG.quadSize,  pixelY + CONFIG.quadSize};
 
     topLeft     .color = colour;
     topRight    .color = colour;
@@ -57,25 +55,31 @@ void Drawboard::draw(sf::RenderWindow& window, bool drawGrid)
 
 void Drawboard::makeGrid()
 {
-    for (unsigned x = 0; x < WIDTH; x++)
+    for (unsigned x = 0; x < CONFIG.simWidth; x++)
     {
         sf::Vertex top;
         sf::Vertex bottom;
 
-        top     .position = {float(x * QUAD_SIZE), 0};
-        bottom  .position = {float(x * QUAD_SIZE), float(HEIGHT * QUAD_SIZE)};
+        float pX = x * CONFIG.quadSize;
+        float pY = CONFIG.simHeight * CONFIG.quadSize;
+
+        top     .position = {pX, 0};
+        bottom  .position = {pX, pY};
 
         m_grid.push_back(top);
         m_grid.push_back(bottom);
     }
 
-    for (unsigned y = 0; y < WIDTH; y++)
+    for (unsigned y = 0; y < CONFIG.simHeight; y++)
     {
         sf::Vertex left;
         sf::Vertex right;
 
-        left    .position = {0,                         float(y * QUAD_SIZE)};
-        right   .position = {float(WIDTH * QUAD_SIZE),  float(y * QUAD_SIZE)};
+        float pX = CONFIG.simWidth * CONFIG.quadSize;
+        float pY = y * CONFIG.quadSize;
+
+        left    .position = {0,  pY};
+        right   .position = {pX, pY};
 
         m_grid.push_back(left);
         m_grid.push_back(right);
@@ -84,6 +88,6 @@ void Drawboard::makeGrid()
 
 unsigned Drawboard::getQuadIndex(unsigned x, unsigned y)
 {
-    return (y * WIDTH + x) * 4;
+    return (y * CONFIG.simWidth + x) * 4;
 }
 

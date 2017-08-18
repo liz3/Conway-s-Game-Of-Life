@@ -15,14 +15,12 @@ sf::Color& getCellColour(Cell cell)
                     deadColour;
 }
 
-Application::Application()
-:   m_window    ({1024, 768}, "Conway's Game of Life")
-,   QUAD_SIZE   (8)
-,   WIDTH       (m_window.getSize().x / QUAD_SIZE)
-,   HEIGHT      (m_window.getSize().y / QUAD_SIZE)
-,   m_cells     (WIDTH * HEIGHT)
+Application::Application(Config config)
+:   CONFIG      (config)
+,   m_drawBoard (config)
+,   m_window    ({config.windowWidth, config.windowHeight}, "Conway's Game of Life")
 ,   m_view      ({0, 0}, {(float)m_window.getSize().x, (float)m_window.getSize().y})
-,   m_drawBoard (WIDTH, HEIGHT, QUAD_SIZE)
+,   m_cells     (config.simWidth * config.simHeight)
 {
     m_font.loadFromFile         ("font/arial.ttf");
     m_text.setFont              (m_font);
@@ -80,7 +78,7 @@ void Application::run()
 
 void Application::updateWorld()
 {
-    std::vector<Cell> newCells(WIDTH * HEIGHT);
+    std::vector<Cell> newCells(CONFIG.simWidth * CONFIG.simHeight);
 
     cellForEach([&](unsigned x, unsigned y)
     {
@@ -91,8 +89,8 @@ void Application::updateWorld()
             int newX = nX + x;
             int newY = nY + y;
 
-            if (newX == -1 || newX == (int)WIDTH ||
-                newY == -1 || newY == (int)WIDTH || //out of bounds
+            if (newX == -1 || newX == (int)CONFIG.simWidth ||
+                newY == -1 || newY == (int)CONFIG.simHeight || //out of bounds
                 (nX == 0 && nY == 0)) //Cell itself
             {
                 continue;
@@ -143,7 +141,7 @@ void Application::handleEvents()
 
 unsigned Application::getCellIndex(unsigned x, unsigned y)
 {
-    return y * WIDTH + x;
+    return y * CONFIG.simWidth + x;
 }
 
 void Application::handleInput(float dt)
@@ -200,8 +198,8 @@ void Application::mouseInput()
             }
 
             //Convert mouse/ screen coordinates to cell coordinates
-            int newX = x / QUAD_SIZE;
-            int newY = y / QUAD_SIZE;
+            int newX = x / CONFIG.quadSize;
+            int newY = y / CONFIG.quadSize;
 
             //Switch cell type
             auto& cell = m_cells[getCellIndex(newX, newY)];
