@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>  //uint8_t
 
-#include "DrawBoard.h"
+#include "QuadBoard.h"
 #include "Config.h"
 
 enum class Cell : uint8_t
