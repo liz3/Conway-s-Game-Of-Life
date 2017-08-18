@@ -6,6 +6,7 @@
 #include <cstdint>  //uint8_t
 
 #include "Random.h"
+#include "DrawBoard.h"
 
 enum class Cell : uint8_t
 {
@@ -27,16 +28,11 @@ class Application
         void run();
 
     private:
-        void handleEvents();
-        void updateWorld();
-        void handleInput(float dt);
-
-        void mouseInput();
-
-        void makeGrid();
-
+        void handleEvents       ();
+        void updateWorld        ();
+        void handleInput        (float dt);
+        void mouseInput         ();
         unsigned getCellIndex   (unsigned x, unsigned y);
-        void setQuadColour      (unsigned x, unsigned y, Cell cell);
 
         template<typename F>
         void cellForEach(F f);
@@ -47,8 +43,6 @@ class Application
         const unsigned WIDTH;
         const unsigned HEIGHT;
 
-        std::vector<sf::Vertex>     m_grid;
-        std::vector<sf::Vertex>     m_pixels;
         std::vector<Cell>           m_cells;
 
         Random m_rand;
@@ -59,6 +53,8 @@ class Application
         sf::Text m_text;
 
         sf::View m_view;
+
+        Drawboard m_drawBoard;
 };
 
 template<typename F>

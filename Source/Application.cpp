@@ -8,7 +8,7 @@ namespace
     sf::Color aliveColour  = sf::Color::Black;
 }
 
-sf::Color getCellColour(Cell cell)
+sf::Color& getCellColour(Cell cell)
 {
     return cell == Cell::Alive ?
                     aliveColour :
@@ -21,7 +21,8 @@ Application::Application()
 ,   WIDTH       (m_window.getSize().x / QUAD_SIZE)
 ,   HEIGHT      (m_window.getSize().y / QUAD_SIZE)
 ,   m_cells     (WIDTH * HEIGHT)
-,   m_view ({0, 0}, {(float)m_window.getSize().x, (float)m_window.getSize().y})
+,   m_view      ({0, 0}, {(float)m_window.getSize().x, (float)m_window.getSize().y})
+,   m_drawBoard (WIDTH, HEIGHT, QUAD_SIZE)
 {
     m_font.loadFromFile         ("font/arial.ttf");
     m_text.setFont              (m_font);
@@ -32,49 +33,14 @@ Application::Application()
     m_text.setPosition          (5, 5);
     m_text.setString            ("Click cell to change it to alive/ dead. \nPress \"Space\" when you are ready.");
 
-
-    m_pixels.reserve(WIDTH *
-                     HEIGHT * 4);
-
     m_window.setFramerateLimit(30);
-
-    auto addQuad = [&](unsigned x, unsigned y)
-    {
-        sf::Vertex topLeft;
-        sf::Vertex topRight;
-        sf::Vertex bottomLeft;
-        sf::Vertex bottomRight;
-
-        float pixelX = x * QUAD_SIZE;
-        float pixelY = y * QUAD_SIZE;
-
-        topLeft     .position = {pixelX,                pixelY};
-        topRight    .position = {pixelX + QUAD_SIZE,    pixelY};
-        bottomLeft  .position = {pixelX,                pixelY + QUAD_SIZE};
-        bottomRight .position = {pixelX + QUAD_SIZE,    pixelY + QUAD_SIZE};
-
-        auto cell = m_cells[getCellIndex(x, y)];
-        auto colour = getCellColour(cell);
-
-
-        topLeft     .color = colour;
-        topRight    .color = colour;
-        bottomLeft  .color = colour;
-        bottomRight .color = colour;
-
-        m_pixels.push_back(topLeft);
-        m_pixels.push_back(bottomLeft);
-        m_pixels.push_back(bottomRight);
-        m_pixels.push_back(topRight);
-    };
 
     cellForEach([&](unsigned x, unsigned y)
     {
-        m_cells[getCellIndex(x, y)] = ((Cell)m_rand.getIntInRange(0, 1));
-        addQuad(x, y);
+        auto& cell = m_cells[getCellIndex(x, y)];
+        cell = ((Cell)m_rand.getIntInRange(0, 1));
+        m_drawBoard.addQuad(x, y, getCellColour(cell));
     });
-
-    makeGrid();
 
     m_view.setCenter(m_window.getSize().x / 2,
                    m_window.getSize().y / 2);
@@ -103,9 +69,7 @@ void Application::run()
                 break;
         }
 
-        m_window.draw(m_pixels.data(), m_pixels.size(), sf::Quads);
-        if (m_state == State::Creating)
-            m_window.draw(m_grid.data(), m_grid.size(), sf::Lines);
+        m_drawBoard.draw(m_window, m_state == State::Sim ? false : true);
         m_window.setView(m_window.getDefaultView());
         m_window.draw(m_text);
 
@@ -158,7 +122,7 @@ void Application::updateWorld()
                 break;
         }
 
-        setQuadColour(x, y, updateCell);
+        m_drawBoard.setQuadColour(x, y, getCellColour(updateCell));
     });
     m_cells = std::move(newCells);
 }
@@ -180,17 +144,6 @@ void Application::handleEvents()
 unsigned Application::getCellIndex(unsigned x, unsigned y)
 {
     return y * WIDTH + x;
-}
-
-void Application::setQuadColour(unsigned x, unsigned y, Cell cell)
-{
-    auto index =  getCellIndex(x, y) * 4;
-    auto colour = getCellColour(cell);
-
-    m_pixels[index    ].color = colour;
-    m_pixels[index + 1].color = colour;
-    m_pixels[index + 2].color = colour;
-    m_pixels[index + 3].color = colour;
 }
 
 void Application::handleInput(float dt)
@@ -257,34 +210,7 @@ void Application::mouseInput()
                         Cell::Alive;
 
             //Set new colour
-            setQuadColour(newX, newY, cell);
+            m_drawBoard.setQuadColour(newX, newY, getCellColour(cell));
         }
-    }
-}
-
-void Application::makeGrid()
-{
-    for (unsigned x = 0; x < WIDTH; x++)
-    {
-        sf::Vertex top;
-        sf::Vertex bottom;
-
-        top     .position = {float(x * QUAD_SIZE), 0};
-        bottom  .position = {float(x * QUAD_SIZE), float(HEIGHT * QUAD_SIZE)};
-
-        m_grid.push_back(top);
-        m_grid.push_back(bottom);
-    }
-
-    for (unsigned y = 0; y < WIDTH; y++)
-    {
-        sf::Vertex left;
-        sf::Vertex right;
-
-        left    .position = {0,                         float(y * QUAD_SIZE)};
-        right   .position = {float(WIDTH * QUAD_SIZE),  float(y * QUAD_SIZE)};
-
-        m_grid.push_back(left);
-        m_grid.push_back(right);
     }
 }
