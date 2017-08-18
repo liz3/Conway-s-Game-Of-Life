@@ -16,8 +16,8 @@ sf::Color getCellColour(Cell cell)
 }
 
 Application::Application()
-:   m_window    ({1280, 720}, "Conway's Game of Life")
-,   QUAD_SIZE   (32)
+:   m_window    ({800, 600}, "Conway's Game of Life")
+,   QUAD_SIZE   (8)
 ,   WIDTH       (m_window.getSize().x / QUAD_SIZE)
 ,   HEIGHT      (m_window.getSize().y / QUAD_SIZE)
 ,   m_cells     (WIDTH * HEIGHT)
@@ -35,10 +35,10 @@ Application::Application()
     m_pixels.reserve(WIDTH *
                      HEIGHT * 4);
 
-    m_window.setFramerateLimit(30);
+    m_window.setFramerateLimit(10);
 
 
-    auto addQuad = [&](int x, int y)
+    auto addQuad = [&](unsigned x, unsigned y)
     {
         sf::Vertex topLeft;
         sf::Vertex topRight;
@@ -68,16 +68,17 @@ Application::Application()
         m_pixels.push_back(topRight);
     };
 
-    cellForEach([&](int x, int y)
+    cellForEach([&](unsigned x, unsigned y)
     {
         m_cells[getCellIndex(x, y)] = Cell::Dead;
+        addQuad(x, y);
     });
-
-    cellForEach([&](int x, int y)
+/*
+    cellForEach([&](unsigned x, unsigned y)
     {
         addQuad(x, y);
     });
-
+*/
     makeGrid();
 }
 
@@ -91,7 +92,7 @@ void Application::run()
         switch (m_state)
         {
             case State::Creating:
-                handleCreateInput();
+                handleInput();
                 break;
 
             case State::Sim:
@@ -122,7 +123,7 @@ void Application::updateWorld()
 {
     std::vector<Cell> newCells(WIDTH * HEIGHT);
 
-    cellForEach([&](int x, int y)
+    cellForEach([&](unsigned x, unsigned y)
     {
         unsigned count = 0;
         for (int nX = -1; nX <= 1; nX++)    //check neighbours
@@ -132,9 +133,10 @@ void Application::updateWorld()
             int newY = nY + y;
 
             if (newX == -1 || newX == (int)WIDTH ||
-                newY == -1 || newY == (int)WIDTH)
+                newY == -1 || newY == (int)WIDTH || //out of bounds
+                (nX == 0 && nY == 0)) //Cell itself
             {
-                continue;   //out of bounds
+                continue;
             }
             auto cell = m_cells[getCellIndex(newX, newY)];
             if (cell == Cell::Alive)
@@ -143,6 +145,7 @@ void Application::updateWorld()
 
         auto cell           = m_cells[getCellIndex(x, y)];
         auto& updateCell    = newCells[getCellIndex(x, y)];
+        updateCell = cell;
         switch (cell)
         {
             case Cell::Alive:
@@ -195,50 +198,46 @@ void Application::setQuadColour(unsigned x, unsigned y, Cell cell)
     m_pixels[index + 3].color = colour;
 }
 
-void pv2(int x, int y)
-{
-    std::cout << "X: " << x << " Y: " << y << "\n";
-}
-
-void Application::handleCreateInput()
+void Application::handleInput()
 {
     static sf::Clock delay;
     if (delay.getElapsedTime().asSeconds() > 0.2)
     {
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            delay.restart();
-            auto mousePosition = sf::Mouse::getPosition(m_window);
-            auto x = mousePosition.x;
-            auto y = mousePosition.y;
-
-            if (x < 0 || x > (int)m_window.getSize().x ||
-                y < 0 || y > (int)m_window.getSize().y)
-            {
-                return;
-            }
-
-            //Convert mouse/ screen coordinates to cell coordinates
-            int newX = x / QUAD_SIZE;
-            int newY = y / QUAD_SIZE;
-
-            //Switch cell type
-            auto& cell = m_cells[getCellIndex(newX, newY)];
-            cell =  cell == Cell::Alive ?
-                        Cell::Dead :
-                        Cell::Alive;
-
-            //Set new colour
-            setQuadColour(newX, newY, cell);
-
-            pv2(mousePosition.x, mousePosition.y);
-            pv2(newX, newY);
-            std::cout << "\n";
-        }
+        mouseInput();
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
     {
         m_state = State::Sim;
+    }
+}
+
+void Application::mouseInput()
+{
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    {
+        delay.restart();
+        auto mousePosition = sf::Mouse::getPosition(m_window);
+        auto x = mousePosition.x;
+        auto y = mousePosition.y;
+
+        if (x < 0 || x > (int)m_window.getSize().x ||
+            y < 0 || y > (int)m_window.getSize().y)
+        {
+            return;
+        }
+
+        //Convert mouse/ screen coordinates to cell coordinates
+        int newX = x / QUAD_SIZE;
+        int newY = y / QUAD_SIZE;
+
+        //Switch cell type
+        auto& cell = m_cells[getCellIndex(newX, newY)];
+        cell =  cell == Cell::Alive ?
+                    Cell::Dead :
+                    Cell::Alive;
+
+        //Set new colour
+        setQuadColour(newX, newY, cell);
     }
 }
 

@@ -29,7 +29,9 @@ class Application
     private:
         void handleEvents();
         void updateWorld();
-        void handleCreateInput();
+        void handleInput();
+
+        void mouseInput();
 
         void makeGrid();
 
@@ -60,9 +62,9 @@ class Application
 template<typename F>
 void Application::cellForEach(F f)
 {
-    for (unsigned x = 0; x < WIDTH; x++)
+    for (unsigned y = 0; y < HEIGHT; y++)
     {
-        for (unsigned y = 0; y < HEIGHT; y++)
+        for (unsigned x = 0; x < WIDTH; x++)
         {
             f(x, y);
         }
