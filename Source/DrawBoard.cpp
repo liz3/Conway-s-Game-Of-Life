@@ -95,7 +95,7 @@ void Drawboard::makeGrid()
     }
 }
 
-unsigned Drawboard::getQuadIndex(unsigned x, unsigned y)
+unsigned Drawboard::getQuadIndex(unsigned x, unsigned y) const
 {
     return (y * CONFIG.simWidth + x) * 4;
 }

@@ -17,7 +17,7 @@ class Drawboard
         void draw(sf::RenderWindow& window);
 
     private:
-        unsigned getQuadIndex(unsigned x, unsigned y);
+        unsigned getQuadIndex(unsigned x, unsigned y) const;
         void makeGrid();
 
         std::vector<sf::Vertex>     m_grid;

@@ -31,7 +31,7 @@ class Application
         void handleEvents       ();
         void updateWorld        ();
         void mouseInput         ();
-        unsigned getCellIndex   (unsigned x, unsigned y);
+        unsigned getCellIndex   (unsigned x, unsigned y) const;
 
         template<typename F>
         void cellForEach(F f);

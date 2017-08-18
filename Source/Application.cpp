@@ -156,7 +156,7 @@ void Application::handleEvents()
     }
 }
 
-unsigned Application::getCellIndex(unsigned x, unsigned y)
+unsigned Application::getCellIndex(unsigned x, unsigned y) const
 {
     return y * CONFIG.simWidth + x;
 }
