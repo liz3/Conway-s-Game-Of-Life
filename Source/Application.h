@@ -4,6 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <cstdint>  //uint8_t
+#include <chrono>
+#include <thread>
 
 #include "QuadBoard.h"
 #include "Config.h"
@@ -17,9 +19,17 @@ enum class Cell : uint8_t
 enum class State  : uint8_t
 {
     Sim,
-    Creating
+    Creating,
+    Paused
 };
+struct CellSave {
+    unsigned x, y;
+    Cell cell;
 
+};
+struct Save {
+    std::vector<CellSave> cells = std::vector<CellSave>();
+};
 class Application
 {
     public:
@@ -47,6 +57,7 @@ class Application
         sf::Text m_text;
 
         std::vector<Cell> m_cells;
+        std::vector<Save> saves = std::vector<Save>();
 };
 
 template<typename F>

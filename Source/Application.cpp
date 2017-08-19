@@ -36,7 +36,7 @@ Application::Application(const Config& config)
                                  std::string("Press \"T\" to toggle the grid\n") +
                                  std::string("Press \"Space\" when you are ready."));
 
-    m_window.setFramerateLimit(30);
+    m_window.setFramerateLimit(5);
 
     std::mt19937 rng (std::time(nullptr));
     cellForEach([&](unsigned x, unsigned y)
@@ -53,6 +53,8 @@ Application::Application(const Config& config)
 
 void Application::run()
 {
+    bool changed = false;
+    int offset = 1;
     int generations = 0;
     sf::Clock clock;
     while (m_window.isOpen())
@@ -62,6 +64,77 @@ void Application::run()
 
         switch (m_state)
         {
+
+            case State::Paused:
+                if (!changed && sf::Keyboard::isKeyPressed(sf::Keyboard::N)) {
+                    std::cout << "Generating a new entry" << std::endl;
+                    std::cout << "Offset: " << offset << std::endl;
+                    std::cout << "Count: " << saves.size() << std::endl;
+                    changed = true;
+                    if (offset == 1) {
+                        m_text.setString("Generation: " + std::to_string(generations++));
+                        updateWorld();
+                        m_quadBoard.draw(m_window);
+                        m_window.setView(m_window.getDefaultView());
+                        m_window.draw(m_text);
+                        m_window.display();
+                    } else {
+                        offset--;
+                        std::cout << "Going  forward" << std::endl;
+                        std::cout << "Offset: " << offset << std::endl;
+                        std::cout << "Count: " << saves.size() << std::endl;
+                        Save *wanted = &saves[saves.size() - offset];
+                        if (wanted != nullptr) {
+                            for (CellSave &cell : wanted->cells) {
+                                m_quadBoard.setQuadColour(cell.x, cell.y, getCellColour(cell.cell));
+                            }
+                            m_quadBoard.draw(m_window);
+                            m_window.setView(m_window.getDefaultView());
+                            m_window.draw(m_text);
+                            m_window.display();
+                        }
+                    }
+                } else if (!changed && sf::Keyboard::isKeyPressed(sf::Keyboard::B)) {
+                    changed = true;
+                    offset++;
+                    std::cout << "Going back" << std::endl;
+                    std::cout << "Offset: " << offset << std::endl;
+                    std::cout << "Count: " << saves.size() << std::endl;
+                    Save *wanted = &saves[saves.size() - offset];
+
+                    if (wanted != nullptr) {
+                        for (CellSave &cell : wanted->cells) {
+
+                            m_quadBoard.setQuadColour(cell.x, cell.y, getCellColour(cell.cell));
+                        }
+
+                        m_quadBoard.draw(m_window);
+                        m_window.setView(m_window.getDefaultView());
+                        m_window.draw(m_text);
+                        m_window.display();
+                    }
+                } else if (!changed && sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                    m_state = State::Sim;
+                    changed = true;
+                    Save *wanted = &saves[saves.size() - 1];
+                    if (wanted != nullptr) {
+                        offset = 1;
+                        for (auto &cell : wanted->cells) // access by reference to avoid copying
+                        {
+                            m_quadBoard.setQuadColour(cell.x, cell.y, getCellColour(cell.cell));
+                        }
+                        m_quadBoard.draw(m_window);
+                        m_window.setView(m_window.getDefaultView());
+                        m_window.draw(m_text);
+                        m_window.display();
+                    }
+                    std::cout << "Changed to continue" << std::endl;
+                } else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+                    break;
+                }
+
             case State::Creating:
                 mouseInput();
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
@@ -79,24 +152,44 @@ void Application::run()
                 break;
 
             case State::Sim:
+                if (!changed) {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                        m_state = State::Paused;
+                        changed = true;
+                        std::cout << "Changed to paused" << std::endl;
+                        break;
+                    }
+                }
                 m_text.setString("Generation: " + std::to_string(generations++));
                 updateWorld();
                 break;
         }
 
-        m_quadBoard.draw(m_window);
-        m_window.setView(m_window.getDefaultView());
-        m_window.draw(m_text);
+        if (m_state != State::Paused) {
+            m_quadBoard.draw(m_window);
+            m_window.setView(m_window.getDefaultView());
+            m_window.draw(m_text);
 
-        m_window.display();
+            m_window.display();
+
+        }
+        if(saves.size() > 250) {
+            saves.erase(saves.begin());
+
+        }
         handleEvents();
+        if (changed &&
+            !sf::Keyboard::isKeyPressed(sf::Keyboard::P) &&
+            !sf::Keyboard::isKeyPressed(sf::Keyboard::N) &&
+            !sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+            changed = false;
     }
 }
 
 void Application::updateWorld()
 {
     std::vector<Cell> newCells(CONFIG.simWidth * CONFIG.simHeight);
-
+    Save save = Save();
     cellForEach([&](unsigned x, unsigned y)
     {
         unsigned count = 0;
@@ -138,8 +231,14 @@ void Application::updateWorld()
         }
 
         m_quadBoard.setQuadColour(x, y, getCellColour(updateCell));
+        CellSave cellSave = CellSave();
+        cellSave.x = x;
+        cellSave.y = y;
+        cellSave.cell = updateCell;
+        save.cells.push_back(cellSave);
     });
     m_cells = std::move(newCells);
+    saves.push_back(save);
 }
 
 

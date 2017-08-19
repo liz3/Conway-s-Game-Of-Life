@@ -34,4 +34,4 @@ if (THREADS_FOUND)
     link_libraries(Threads::Threads)
 endif()
 
-add_executable(game ${SOURCE_FILES})
+add_executable(game ${SOURCE_FILES}) 
