@@ -3,12 +3,11 @@
 
 struct Config
 {
-    unsigned  windowWidth,
+    unsigned    windowWidth,
                 windowHeight,
                 simWidth,
                 simHeight,
                 quadSize;
-    std::string name;
 };
 
 #endif // CONFIG_H_INCLUDED

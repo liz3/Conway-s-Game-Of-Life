@@ -36,12 +36,10 @@ int main()
         std::cout << "Enter cell size: ";
         std::cin >> config.quadSize;
 
-        std::cout << "Enter Window Name: ";
-        std::cin >> config.name;
-
         //Make it so that the cells fit in the window
         config.windowWidth -= config.windowWidth   % config.quadSize;
         config.windowHeight -= config.windowHeight % config.quadSize;
+
         config.simWidth  =  config.windowWidth  / config.quadSize;
         config.simHeight =  config.windowHeight / config.quadSize;
     }
@@ -50,7 +48,7 @@ int main()
         config.quadSize     = 8;
         config.windowWidth  = 1024;
         config.windowHeight = 768;
-        config.name = "Conway´s Game of Life";
+
         config.simWidth     =  config.windowWidth  / config.quadSize;
         config.simHeight    =  config.windowHeight / config.quadSize;
     }

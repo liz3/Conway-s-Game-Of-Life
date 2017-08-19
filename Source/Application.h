@@ -4,69 +4,58 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <cstdint>  //uint8_t
-#include <chrono>
-#include <thread>
+
 #include "QuadBoard.h"
 #include "Config.h"
 
-
-enum class Cell : uint8_t {
+enum class Cell : uint8_t
+{
     Dead,
     Alive
 };
 
-enum class State : uint8_t {
+enum class State  : uint8_t
+{
     Sim,
-    Creating,
-    Paused
-};
-struct CellSave {
-    unsigned x, y;
-    Cell cell;
-
-};
-struct Save {
-    std::vector<CellSave> cells = std::vector<CellSave>();
+    Creating
 };
 
+class Application
+{
+    public:
+        Application(const Config& config);
 
-class Application {
-public:
-    Application(const Config &config);
+        void run();
 
-    void run();
+    private:
+        void handleEvents       ();
+        void updateWorld        ();
+        void mouseInput         ();
+        unsigned getCellIndex   (unsigned x, unsigned y) const;
 
-private:
-    void handleEvents();
+        template<typename F>
+        void cellForEach(F f);
 
-    void updateWorld();
+        const Config CONFIG;
 
-    void mouseInput();
+        QuadBoard m_quadBoard;
+        State m_state = State::Creating;
 
-    unsigned getCellIndex(unsigned x, unsigned y) const;
+        sf::RenderWindow m_window;
+        sf::View m_view;
+        sf::Font m_font;
+        sf::Text m_text;
 
-    template<typename F>
-    void cellForEach(F f);
-
-    const Config CONFIG;
-
-    QuadBoard m_quadBoard;
-    State m_state = State::Creating;
-
-    sf::RenderWindow m_window;
-    sf::View m_view;
-    sf::Font m_font;
-    sf::Text m_text;
-
-    std::vector<Cell> m_cells;
-
-    std::vector<Save> saves = std::vector<Save>();
+        std::vector<Cell> m_cells;
 };
 
 template<typename F>
-void Application::cellForEach(F f) {
-    for (unsigned y = 0; y < CONFIG.simHeight; y++) {
-        for (unsigned x = 0; x < CONFIG.simWidth; x++) {
+void Application::cellForEach(F f)
+{
+    for (unsigned y = 0; y < CONFIG.simHeight; y++)
+    {
+        for (unsigned x = 0; x < CONFIG.simWidth; x++)
+        {
             f(x, y);
         }
     }
