@@ -1,6 +1,9 @@
 # Conway-s-Game-Of-Life
 Game of life, in C++ and SFML
 
+Needed: https://github.com/liz3/SFML-Cmake
+
+
 Rules:
 
     The universe of the Game of Life is an infinite two-dimensional orthogonal grid of square cells, 
